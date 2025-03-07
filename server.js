@@ -1,10 +1,14 @@
 import express from 'express';
 import fs from 'fs';
+//RESOURCES:
+//https://www.geeksforgeeks.org/node-js-fs-readfilesync-method/
 
 //instantiate the server
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+const BOOKS_FILE = 'books.txt';
 
 //POST method: addBooks
 //add books to books.txt
@@ -14,43 +18,39 @@ app.use(express.urlencoded({extended: false}));
 //if all fields exists and not empty strings then save to books.txt
 //format: bookName, isbn (unique), author, yearPublished
 
-// ADD BOOKS POST METHOD
+// ADD BOOK - POST METHOD
 app.post('/add-book', (req, res) => {
-    const { bookName, isbn, author, yearPublished } = req.body; //obj fields
+    const { bookName, isbn, author, yearPublished } = req.body; 
 
-    /*
-    // Validate inputs
+    // if values are not complete
     if (!bookName || !isbn || !author || !yearPublished) {
-        return res.send({ success: false, message: "FIELDS ARE NOT COMPLETE!" });
+        return res.send({ success: false});
     }
-    */
 
-    // Validate inputs
-    if (bookName && isbn && author && yearPublished !== "") { 
-        
-        // add function to check for duplicate ISBN
-    
+    try {
+        const books = fs.existsSync(BOOKS_FILE) ? fs.readFileSync(BOOKS_FILE, 'utf8').trim().split('\n') : [];
 
-        let data = `${bookName},${isbn},${author},${yearPublished}\n`;
-
-        //append to books.txt
-        try {
-            fs.appendFileSync(BOOKS_FILE, data);
-            return res.send({ success: true}); //book added successfully
-        } catch (error) {
-            console.error("Error writing to file:", error);
-            return res.send({ success: false});//failed to save book
+        //no duplicates
+        if (books.some(line => line.split(',')[1] === isbn)) {
+            return res.send({ success: false});
         }
-    } else {
-        return res.send({ success: false}); //fields are not complete
-    }
 
+        //append
+        const newBook = `${bookName},${isbn},${author},${yearPublished}\n`;
+        fs.appendFileSync(BOOKS_FILE, newBook);
+
+        return res.send({ success: true });
+
+    } catch (error) {
+        console.error(error);
+        return res.send({ success: false});
+    }
 });
 
-//
 
-
-
+app.listen(3000, () => {
+    console.log('Server started at port 3000');
+});
 /*
 //this tell our app to listen for GET messages on the '/' path
 //the callback function specifies what the server will do when 
