@@ -29,7 +29,6 @@ needle.get(
     }
 );
 
-/*
 //FIND BOOK: AUTHOR
 needle.get(
     `${BASE_URL}/find-by-author?author=J.K+Rowling`,
@@ -41,4 +40,3 @@ needle.get(
         }
     }
 );
-*/

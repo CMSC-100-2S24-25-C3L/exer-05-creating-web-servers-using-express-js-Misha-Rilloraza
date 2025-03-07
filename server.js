@@ -28,12 +28,21 @@ app.post('/add-book', (req, res) => {
 
     //else if all values are present then...
     try {
-
-        //if books.txt exists then read the file (separate each line by ,)
         const books = fs.existsSync(BOOKS_FILE) ? fs.readFileSync(BOOKS_FILE, 'utf8').trim().split('\n') : [];
 
-        //no duplicates
-        if (books.some(line => line.split(',')[1] === isbn)) {
+        // Check for duplicate ISBN using a for loop
+        let duplicate = false;
+        for (let i = 0; i < books.length; i++) {
+            const bookDetails = books[i].split(','); //split each details by ,
+            const existingIsbn = bookDetails[1]; //then get isbn
+
+            if (existingIsbn === isbn) { //if isbn exists, stop
+                duplicate = true;
+                break; 
+            }
+        }
+
+        if (duplicate) {
             return res.send({ success: false });
         }
 
@@ -64,11 +73,10 @@ app.get('/find-by-isbn-author', (req, res) => {
         //read entire information inside books.txt
         const books = fs.readFileSync(BOOKS_FILE, 'utf8').trim().split('\n');
 
-        let bookFound = null; //initially book is not found yet
-        for (let x of books) {
-            //separate book details 
+        let bookFound = null; //initially book is not found
+        for (let x of books) { //separate book details
             const [bookName, bookIsbn, bookAuthor, yearPublished] = x.split(',');
-
+            
             //if bookIsbn and bookAuthor == to sample in the test.js then return book details
             if (bookIsbn === isbn && bookAuthor === author) {
                 bookFound = { bookName, isbn: bookIsbn, author: bookAuthor, yearPublished };
@@ -83,33 +91,46 @@ app.get('/find-by-isbn-author', (req, res) => {
     }
 });
 
+//GET METHOD - author
+// GET METHOD - Find books by author
+app.get('/find-by-author', (req, res) => {
+    const { author } = req.query;
+
+    //if author is empty
+    if (!author) {
+        return res.send({ success: false });
+    }
+
+    //else if author is present then...
+    try {
+        //read entire information inside books.txt
+        if (!fs.existsSync(BOOKS_FILE)) {
+            return res.send({ success: false });
+        }
+
+        const books = fs.readFileSync(BOOKS_FILE, 'utf8').trim().split('\n');
+        const booksByAuthor = []; //empty list for other books the author made
+
+        for (let x of books) {
+            const [bookName, bookIsbn, bookAuthor, yearPublished] = x.split(',');
+
+            /*
+            //add matched book to the other books the author made
+            if (bookAuthor === author) {
+                booksByAuthor.concat({ bookName, isbn: bookIsbn, author: bookAuthor, yearPublished });
+            }
+                */
+        }
+        //return the books the author made (if there is one) 
+        return booksByAuthor.length > 0? res.send({ success: true, books: booksByAuthor }): res.send({ success: false});
+
+    } catch (error) {
+        console.error(error);
+        return res.send({ success: false});
+    }
+});
+
+
 app.listen(3000, () => {
     console.log('Server started at port 3000');
 });
-
-
-
-/*
-//this tell our app to listen for GET messages on the '/' path
-//the callback function specifies what the server will do when 
-//a message is received
-app.get('/', (req, res) => {
-    res.send('<h1>Hello!<h1>');
-});
-
-app.get('/greeting', (req, res) => {
-    res.send('Hello ' + req.query.name);
-});
-
-app.post('/submit-data', (req, res) => {
-    console.log(req.body);
-    res.send('Received a POST request from ' + req.body.name);
-    //const {name, age, city } = req.body;
-    //res.send('Received data: Name - ${name}, Age - ${age}, City - ${city}');
-});
-
-// this tells our server to listen to the port 3000
-// we can also pass an optional callback function to execute 
-// after the server starts
-app.listen(3000, () => { console.log('Server started at port 3000')});
-*/
