@@ -109,17 +109,17 @@ app.get('/find-by-author', (req, res) => {
         }
 
         const books = fs.readFileSync(BOOKS_FILE, 'utf8').trim().split('\n');
-        const booksByAuthor = []; //empty list for other books the author made
+        let booksByAuthor = []; //empty list for other books the author made
 
         for (let x of books) {
             const [bookName, bookIsbn, bookAuthor, yearPublished] = x.split(',');
 
-            /*
+            
             //add matched book to the other books the author made
             if (bookAuthor === author) {
-                booksByAuthor.concat({ bookName, isbn: bookIsbn, author: bookAuthor, yearPublished });
+                booksByAuthor = booksByAuthor.concat({ bookName, isbn: bookIsbn, author: bookAuthor, yearPublished });
             }
-                */
+            
         }
         //return the books the author made (if there is one) 
         return booksByAuthor.length > 0? res.send({ success: true, books: booksByAuthor }): res.send({ success: false});
