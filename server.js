@@ -6,6 +6,50 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+//POST method: addBooks
+//add books to books.txt
+//route name: /add-book
+//accepts an obj in the req body.
+//obj fields: bookName, isbn (unique), author, yearPublished
+//if all fields exists and not empty strings then save to books.txt
+//format: bookName, isbn (unique), author, yearPublished
+
+// ADD BOOKS POST METHOD
+app.post('/add-book', (req, res) => {
+    const { bookName, isbn, author, yearPublished } = req.body; //obj fields
+
+    /*
+    // Validate inputs
+    if (!bookName || !isbn || !author || !yearPublished) {
+        return res.send({ success: false, message: "FIELDS ARE NOT COMPLETE!" });
+    }
+    */
+
+    // Validate inputs
+    if (bookName && isbn && author && yearPublished !== "") { 
+        
+        // add function to check for duplicate ISBN
+    
+
+        let data = `${bookName},${isbn},${author},${yearPublished}\n`;
+
+        //append to books.txt
+        try {
+            fs.appendFileSync(BOOKS_FILE, data);
+            return res.send({ success: true}); //book added successfully
+        } catch (error) {
+            console.error("Error writing to file:", error);
+            return res.send({ success: false});//failed to save book
+        }
+    } else {
+        return res.send({ success: false}); //fields are not complete
+    }
+
+});
+
+//
+
+
 
 /*
 //this tell our app to listen for GET messages on the '/' path
